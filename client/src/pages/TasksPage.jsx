@@ -1,10 +1,21 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import TaskCard from '../components/TaskCard'
+import { useTasks } from '../context/TaskContext'
 
 function TasksPage() {
+  const {tasks, loadTask} = useTasks()
+  useEffect(() => {
+    loadTask()
+  }, [])
+
+  function renderMain() {
+    if (tasks.length === 0) return <h1>No tasks yet</h1>
+    return tasks.map((task) => <TaskCard task={task} key={task.id}></TaskCard>)
+  }
   return (
     <div>
-      <h1>Task Page</h1>
-      <Link to='/new'>Ir a Formulario</Link>
+      <h1 className='text-5xl text-white font-bold text-center'>Tasks</h1>
+      <div className='grid grud-cols-3 gap-2'>{renderMain()}</div>
     </div>
   )
 }

@@ -1,18 +1,73 @@
-import {Formik, Form} from 'formik'
+import { Formik, Form } from 'formik'
+import { useTasks } from '../context/TaskContext'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 function TaskForm() {
+  const { createTask, getTask, updateTask } = useTasks()
+  const [task, setTask] = useState({
+    title: '',
+    description: '',
+  })
+  const params = useParams()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const loadTask = async () => {
+      if (params.id) {
+        const task = await getTask(params.id)
+        setTask({
+          title: task.title,
+          description: task.description,
+        })
+      }
+    }
+    loadTask()
+  }, [])
+
   return (
     <div>
-      <Formik>
-        <Form>
-          <label>title</label>
-          <input type="text" name ='title' placeholder='Write a title'/>
-          <labeL>description</labeL>
-          <textarea name="description" placeholder='Write a description'  rows="3"></textarea>
+      <Formik
+        initialValues={task}
+        enableReinitialize={true}
+        onSubmit={async (values, actions) => {
+          console.log(values)
 
-          <button>
-            Save
-          </button>
-        </Form>
+          if (params.id) {
+            await updateTask(params.id, values)
+            navigate("/")
+          } else {
+            await createTask(values)
+          }
+          actions.resetForm()
+        }}
+      >
+        {({ handleChange, handleSubmit, values, isSubmitting }) => (
+          <Form onSubmit={handleSubmit} className='bg-slate-300 max-w-sm rounded-md p-4 mx-auto mt-10'>
+            <h1 className='text-xl font-bold uppercase text-center'>{params.id ? "Edit Task" : "New Task"}</h1>
+            <label className='block'>title</label>
+            <input
+              type='text'
+              name='title'
+              placeholder='Write a title'
+              className='px-2 py-1 rounded-sm w-full'
+              onChange={handleChange}
+              value={values.title}
+            />
+            <label className='block'>description</label>
+            <textarea
+              name='description'
+              placeholder='Write a description'
+              rows='3'
+              className='px-2 py-1 rounded-sm w-full'
+              onChange={handleChange}
+              value={values.description}
+            ></textarea>
+
+            <button type='submit' disabled={isSubmitting} className='block bg-indigo-500 px-2 py-1 text-white w-full rounded-sm'>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </button>
+          </Form>
+        )}
       </Formik>
     </div>
   )
